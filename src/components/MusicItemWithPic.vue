@@ -30,8 +30,8 @@
           tile
         >
           <v-img
-          :src="httpToHttps(this.item.al.picUrl) +'?param=100y100'"
-          :lazy-src="httpToHttps(this.item.al.picUrl) +'?param=30y30'"
+          :src="item.al.picUrl+'?param=100y100'"
+          :lazy-src="item.al.picUrl+'?param=30y30'"
           ></v-img>
         </v-avatar>
       </div>
@@ -41,12 +41,11 @@
 
 <script>
 import { mdiPlaylistPlus } from '@mdi/js'
-import { httpToHttps } from '../utils/helper'
+
 export default {
   data () {
     return {
-      mdiPlaylistPlus,
-      httpToHttps
+      mdiPlaylistPlus
     }
   },
   props: {
