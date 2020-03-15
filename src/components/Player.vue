@@ -16,7 +16,7 @@
       crossorigin="anonymous"
       v-show="getMusicUrlsListById.length > 0"
       ref="player"
-      :src="getMusicUrlsListById.length > 0 ? musicUrlHttps : ''"
+      :src="getMusicUrlsListById.length > 0 ? httpToHttps(this.getMusicUrlsListById[0].url) : ''"
       preload="auto"
       type="audio/mpeg"
       @timeupdate="getMusicInfo($event.target)"
@@ -53,7 +53,7 @@
                 v-if="getMusicDetailsList[currentTrack]"
                 class="my-1 pa-0 mx-auto cover-round"
                 :class="[paused ? '' : 'cover-rotation' , layout ? 'cover-disk' : '']"
-                :src="getMusicDetailsList[currentTrack].al.picUrl+'?param=400y400'"
+                :src="httpToHttps(this.getMusicDetailsList[this.currentTrack].al.picUrl)+'?param=400y400'"
                 :max-width="layout ? 400 : 94"
                 :max-height="layout ? 400 : 94"
                 contain
@@ -209,15 +209,7 @@
             @switchTab = "switchTab"
             @toggleLayout = "toggleLayout"
           />
-          <!-- <WaveEffect
-            v-if="!paused && breakpoint"
-            :layout = "layout"
-          ></WaveEffect> -->
-          <!-- <WaveEffectLarge
-            v-if="!paused && !breakpoint"
-            :layout = "layout"
-          ></WaveEffectLarge> -->
-      <!-- </v-col> -->
+
     </v-footer>
 </template>
 
@@ -230,6 +222,7 @@ import PlayerTabPlaylist from './PlayerTabPlaylist'
 import PlayerTabDownload from './PlayerTabDownload'
 import PlayerTabMessage from './PlayerTabMessage'
 import audioAnalyser from '../utils/audioAnalyser'
+import { httpToHttps } from '../utils/helper'
 import { mdiVolumeHigh, mdiSync, mdiEjectOutline, mdiChevronDown, mdiHeart, mdiStepBackward, mdiStepForward, mdiPlay, mdiAlertCircle, mdiPause } from '@mdi/js'
 export default {
   components: { PlayerBottomNav, PlayerTabPlaylist, PlayerTabDownload, PlayerTabMessage },
@@ -247,6 +240,7 @@ export default {
       mdiPlay,
       mdiAlertCircle,
       mdiPause,
+      httpToHttps,
       tab: 0,
       ended: false, // for when audio tag is ended
       volume: 1,
@@ -267,16 +261,6 @@ export default {
       getMusicDetailsList: 'player/getMusicDetailsList',
       getMusicUrlsListById: 'player/getMusicUrlsListById'
     }),
-    musicUrlHttps () {
-      this.audioAnalyserStart()
-      if (this.getMusicUrlsListById[0].url) {
-        let url = this.getMusicUrlsListById[0].url
-        if (url.match('^http://')) {
-          url = url.replace('http://', 'https://')
-        }
-        return url
-      } return null
-    },
     currentTimeAndDurationLabel: function () {
       if (this.duration && this.duration !== 0) {
         return this.fmtSecToMin(Math.round(this.currentTime)) + '-' + this.fmtSecToMin(Math.round(this.duration))
@@ -309,12 +293,13 @@ export default {
     }
   },
   mounted () {
-    // this.audioTagPausedStatus = this.$refs.player.paused
+    audioAnalyser.init()
     this.$refs.player.onended = () => {
       this.nextTrack()
     }
-    audioAnalyser.init()
-    // audioAnalyser.start()
+    this.$refs.player.onplay = () => {
+      this.audioAnalyserStart()
+    }
   },
   methods: {
     audioAnalyserStart () {
@@ -358,9 +343,6 @@ export default {
     },
     nextTrack () {
       this.$store.commit('player/setNextTrack')
-      // if (!this.currentTrackUrlAvailabel) {
-      //   this.nextTrack()
-      // }
     },
     prevTrack () {
       this.$store.commit('player/setPrevTrack')
